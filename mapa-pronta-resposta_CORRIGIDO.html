@@ -393,25 +393,39 @@
         estado: modalForm.estado.value.trim().toUpperCase(),
         cadastradoEm: (new Date()).toLocaleString()
       };
-      let q = encodeURIComponent(data.cidade + " " + data.estado + " Brasil");
-      let url = `https://nominatim.openstreetmap.org/search?city=${q}&format=json&country=brasil&limit=1`;
-      let nresp = await fetch(url);
-      let nres = await nresp.json();
-      if (nres && nres[0]) {
-        data.lat = parseFloat(nres[0].lat);
-        data.lng = parseFloat(nres[0].lon);
-      } else {
-        alert("Cidade não encontrada no mapa! Verifique se escreveu corretamente.");
-        return;
+      
+      try {
+        // CORRIGIDO: Usar 'q=' em vez de 'city='
+        let q = encodeURIComponent(data.cidade + ", " + data.estado + ", Brasil");
+        let url = `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`;
+        
+        console.log("Buscando cidade com URL:", url);
+        
+        let nresp = await fetch(url);
+        let nres = await nresp.json();
+        
+        console.log("Resposta da busca:", nres);
+        
+        if (nres && nres.length > 0) {
+          data.lat = parseFloat(nres[0].lat);
+          data.lng = parseFloat(nres[0].lon);
+          
+          if(isEdit) {
+            let antigo = contatos.find(c=>c.key===modalEditKey.value);
+            if(antigo && antigo.cadastradoEm) data.cadastradoEm = antigo.cadastradoEm;
+            editContatoFirebase(modalEditKey.value, data);
+          } else {
+            addContatoFirebase(data);
+          }
+          modalBg.classList.remove('visible');
+        } else {
+          alert("Cidade não encontrada no mapa! Verifique se escreveu corretamente. Exemplos: 'Rio de Janeiro', 'São Paulo', 'Brasília'.");
+          return;
+        }
+      } catch (erro) {
+        console.error("Erro ao buscar cidade:", erro);
+        alert("Erro ao buscar a cidade. Verifique sua conexão com a internet.");
       }
-      if(isEdit) {
-        let antigo = contatos.find(c=>c.key===modalEditKey.value);
-        if(antigo && antigo.cadastradoEm) data.cadastradoEm = antigo.cadastradoEm;
-        editContatoFirebase(modalEditKey.value, data);
-      } else {
-        addContatoFirebase(data);
-      }
-      modalBg.classList.remove('visible');
     });
     
     // -- Modal cadastro por clique no mapa --
