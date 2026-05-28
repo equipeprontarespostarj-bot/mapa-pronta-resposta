@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <title>Contatos Pronta Resposta - Buscas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <style>
+    html, body {
+      width: 100vw; height: 100%;
+      min-height: 100vh; margin: 0; padding: 0;
+      box-sizing: border-box;
+      overflow-x: hidden;
+      font-family: Arial,sans-serif;
+    }
+    #topbar { width: 100vw; min-height: 56px; background: #1564c0; color: #fff; display: flex; align-items: flex-end; justify-content: center; flex-direction: row; position: fixed; top: 0; left: 0; z-index: 2000; box-sizing: border-box; padding: 0; font-size: 1em;}
+    #topbar-center { flex: 1; text-align: center; padding: 8px 0 2px 0; display: flex; flex-direction: column; justify-content: center; align-items: center;}
+    #topbar-title { font-size: 1.18em; font-weight: bold; letter-spacing: 0.5px; white-space: nowrap; margin-bottom: 1px;}
+    #topbar-subtitle { font-size: .99em; font-weight: normal; white-space: nowrap; margin-bottom: 0; color: #eafff7;}
+    #topbar-btns { display: flex; gap: 12px; margin: 0 36px 0 0; align-items: flex-end;}
+    .bt-action { background: #fff; color: #1564c0; border: none; border-radius: 4px; padding: 7px 16px; font-size: 1em; font-weight: bold; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.07); transition: background 0.2s, color 0.2s; outline: none;}
+    .bt-action:hover { background: #e2e9f6; color: #1251a0;}
+    #credit { display:block; font-size: .93em; color: #e3e9f2; font-style: italic; margin: 4px auto 6px auto; text-align: center; min-width: 100px;}
+    #map { position: absolute; top: 56px; left: 0; width: 100vw; height: calc(100vh - 56px); min-height: 350px; z-index: 0; background: #eaeaea; touch-action: none;}
+    #sidepanel { position: fixed; top: 56px; right: 0; height: calc(100vh - 56px); max-width: 380px; width: 96vw; min-width: 280px; background: #fafafa; box-shadow: -2px 0 10px rgba(50,80,130,0.06); z-index: 2500; transition: transform 0.35s cubic-bezier(.88,-0.01,0,1.07); transform: translateX(110%); box-sizing: border-box; padding: 18px 16px 16px 18px; overflow-y: auto; border-left: 2px solid #e5eefd;}
+    #sidepanel.visible { transform: translateX(0);}
+    #panel-close { float: right; margin: -6px 0 0 0; border: none; background: none; font-size: 1.4em; color: #446; cursor: pointer;}
+    .busca-group { margin-bottom: 12px; }
+    label { display: block; font-size: 0.99em; margin-bottom: 2px; }
+    input[type="text"] { width: 100%; padding: 4px 6px; margin-bottom: 8px; box-sizing: border-box; border: 1px solid #bbb; border-radius: 3px;}
+    input[type="password"] { width: 100%; padding: 4px 6px; margin-bottom: 8px; box-sizing: border-box; border: 1px solid #bbb; border-radius: 3px;}
+    .contato-item { border-bottom: 1px solid #e3e3e3; padding: 4px 0 6px 0; font-size: 0.99em; word-break: break-all; position: relative; padding-right: 110px;}
+    .contato-item:last-child { border: none; }
+    .icon-wpp { display: inline-block; width: 18px; vertical-align: text-bottom; margin-right: 4px;}
+    .editar-contato-btn, .apagar-contato-btn { position: relative; top: 3px; right: 0; background: #1564c0; color: #fff; border: none; border-radius: 4px; font-size: 0.86em; padding: 4px 11px; font-weight: bold; cursor: pointer; transition: background 0.2s; margin-left: 6px; margin-bottom: 3px;}
+    .editar-contato-btn:hover { background: #1862a6; }
+    .apagar-contato-btn { background: #c01515; }
+    .apagar-contato-btn:hover { background: #a31212; }
+    #admin-box { color: #fff; font-size: 0.85em; background:#0b58a5; padding: 3px 14px; border-radius: 0 0 14px 0; position: fixed; left: 0; top:0; z-index:2100;}
+    
+    /* CORRIGIDO: Modal de cadastro */
+    #modal-cadastro-bg {
+      display: none;
+      position: fixed;
+      z-index: 8000;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(20, 30, 50, 0.13);
+      align-items: center;
+      justify-content: center;
+    }
+    #modal-cadastro-bg.visible {
+      display: flex;
+    }
+    #modal-cadastro-form {
+      background: #fff;
+      padding: 21px 30px 14px 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(20, 35, 70, 0.13);
+      max-width: 400px;
+      width: 90%;
+      position: relative;
+    }
+    #modal-cadastro-form h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #1564c0;
+    }
+    #modal-fechar {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 1.5em;
+      color: #666;
+      cursor: pointer;
+    }
+    #modal-cadastro-form button[type="submit"] {
+      background: #1564c0;
+      color: #fff;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    #modal-cadastro-form button[type="submit"]:hover {
+      background: #1251a0;
+    }
+    
+    /* Modal mapa */
+    #modal-cadastro-bg-mapa {
+      display: none;
+      position: fixed;
+      z-index: 8000;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(20, 30, 50, 0.13);
+      align-items: center;
+      justify-content: center;
+    }
+    #modal-cadastro-bg-mapa.visible {
+      display: flex;
+    }
+    #modal-cadastro-form-mapa {
+      background: #fff;
+      padding: 21px 30px 14px 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(20, 35, 70, 0.13);
+      max-width: 400px;
+      width: 90%;
+      position: relative;
+    }
+    #modal-cadastro-form-mapa h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #1564c0;
+    }
+    #modal-fechar-mapa {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 1.5em;
+      color: #666;
+      cursor: pointer;
+    }
+    #modal-cadastro-form-mapa button[type="submit"] {
+      background: #1564c0;
+      color: #fff;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    #modal-cadastro-form-mapa button[type="submit"]:hover {
+      background: #1251a0;
+    }
+    
+    /* Admin login modal */
+    #modal-admin-login-bg { 
+      display: none; 
+      position: fixed; 
+      z-index: 8200; 
+      left: 0; 
+      top: 0; 
+      width: 100vw; 
+      height: 100vh; 
+      background: rgba(20, 30, 50, 0.13); 
+      align-items: center; 
+      justify-content: center;
+    }
+    #modal-admin-login-bg.visible { 
+      display: flex;
+    }
+    #modal-admin-login { 
+      background: #fff; 
+      padding: 21px 30px 14px 30px; 
+      border-radius: 12px; 
+      box-shadow: 0 8px 28px rgba(20, 35, 70, 0.13);
+      max-width: 400px;
+      width: 90%;
+    }
+    #modal-admin-login h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #1564c0;
+    }
+    #modal-admin-login label {
+      margin-bottom: 5px;
+    }
+    #modal-admin-login input[type="password"] { 
+      font-size: 1.05em; 
+      margin-bottom: 10px;
+    }
+    #modal-admin-login button {
+      background: #1564c0;
+      color: #fff;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    #modal-admin-login button:hover {
+      background: #1251a0;
+    }
+    
+    @media (max-width:900px) {
+      #map { height: calc(100vh - 106px);}
+      #sidepanel { top: 56px; width: 97vw; min-width: unset; }
+      #topbar { flex-direction: column; height: auto; min-height: 50px;}
+      #topbar-center{ margin-top: 2px; }
+      #topbar-btns{ flex-direction: row; gap:12px; margin:6px auto 0 auto; min-width: 0;}
+      #credit{ min-width: 0;}
+      #admin-box { padding: 2px 7px; font-size:90%;}
+    }
+  </style>
+</head>
+<body>
+  <div id="topbar">
+    <div id="topbar-center">
+      <div id="topbar-title">Contatos Pronta Resposta - Buscas</div>
+      <div id="topbar-subtitle">Apareça para todas as empresas do Brasil.</div>
+    </div>
+    <div>
+      <div id="topbar-btns">
+        <button class="bt-action" id="bt-cadastro">Novo Cadastro</button>
+        <button class="bt-action" id="bt-busca">Buscas</button>
+        <button class="bt-action" id="bt-admin">Entrar como Admin</button>
+      </div>
+      <span id="credit"><i>Mapa criado por Joe Franco RJ</i></span>
+    </div>
+  </div>
+  <div id="admin-box" style="display:none">Admin ativo</div>
+  <div id="map"></div>
+  <div id="sidepanel">
+    <button id="panel-close" title="Fechar painel lateral">&times;</button>
+    <h2 style="margin-top:0;">Pesquisar e Listar Contatos</h2>
+    <div class="busca-group">
+      <label for="search_estado">Estado:</label>
+      <input type="text" id="search_estado" placeholder="UF, ex: SP, RJ...">
+      <label for="search_cidade">Cidade:</label>
+      <input type="text" id="search_cidade" placeholder="Buscar cidade...">
+    </div>
+    <div id="lista-contatos"></div>
+    <div style="margin:0.7em 0 0 0;font-size:small;color:#888">
+      Você pode cadastrar clicando no mapa ou pelo botão "Novo Cadastro".
+    </div>
+  </div>
+  
+  <!-- Modal para cadastro pelo botão -->
+  <div id="modal-cadastro-bg">
+    <form id="modal-cadastro-form" autocomplete="off">
+      <button id="modal-fechar" title="Fechar janela" type="button">&times;</button>
+      <h3 id="modal-title">Novo Cadastro</h3>
+      <label for="modal-nome">Nome:</label>
+      <input id="modal-nome" name="nome" type="text" placeholder="Nome" required/>
+      <label for="modal-prof">Perfil profissional:</label>
+      <input id="modal-prof" name="prof" type="text" placeholder="Perfil profissional" required/>
+      <label for="modal-wpp">WhatsApp:</label>
+      <input id="modal-wpp" name="wpp" type="text" placeholder="Whatsapp (apenas números)" required/>
+      <label for="modal-cidade">Cidade:</label>
+      <input id="modal-cidade" name="cidade" type="text" placeholder="Cidade" required/>
+      <label for="modal-bairro">Bairro:</label>
+      <input id="modal-bairro" name="bairro" type="text" placeholder="Bairro" required/>
+      <label for="modal-estado">Estado (UF):</label>
+      <input id="modal-estado" name="estado" type="text" maxlength="2" placeholder="UF" required style="width:40px"/><br>
+      <button type="submit">Salvar</button>
+      <input type="hidden" id="modal-edit-key" value="">
+    </form>
+  </div>
+  
+  <!-- Modal para cadastro por clique no mapa -->
+  <div id="modal-cadastro-bg-mapa">
+    <form id="modal-cadastro-form-mapa" autocomplete="off">
+      <button id="modal-fechar-mapa" title="Fechar janela" type="button">&times;</button>
+      <h3>Adicionar Contato</h3>
+      <label for="modal-nome-mapa">Nome:</label>
+      <input id="modal-nome-mapa" name="nome" type="text" required/>
+      <label for="modal-prof-mapa">Perfil profissional:</label>
+      <input id="modal-prof-mapa" name="prof" type="text" required/>
+      <label for="modal-wpp-mapa">WhatsApp:</label>
+      <input id="modal-wpp-mapa" name="wpp" type="text" required/>
+      <label for="modal-cidade-mapa">Cidade:</label>
+      <input id="modal-cidade-mapa" name="cidade" type="text" required/>
+      <label for="modal-bairro-mapa">Bairro:</label>
+      <input id="modal-bairro-mapa" name="bairro" type="text" required/>
+      <label for="modal-estado-mapa">Estado (UF):</label>
+      <input id="modal-estado-mapa" name="estado" type="text" maxlength="2" required style="width:40px"/><br>
+      <button type="submit">Salvar</button>
+      <input type="hidden" id="modal-lat-mapa" name="lat"/>
+      <input type="hidden" id="modal-lng-mapa" name="lng"/>
+    </form>
+  </div>
+  
+  <!-- Modal de Admin Login -->
+  <div id="modal-admin-login-bg">
+    <form id="modal-admin-login">
+      <h3>Acesso Admin</h3>
+      <label for="admin-password">Senha de admin:</label>
+      <input type="password" id="admin-password" autocomplete="off" placeholder="Digite a senha"/>
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button type="submit" style="flex: 1;">Entrar</button>
+        <button type="button" id="bt-cancelar-admin" style="flex: 1;">Cancelar</button>
+      </div>
+      <div id="admin-erro" style="color:#b22;font-size:.98em; margin-top:6px;display:none"></div>
+    </form>
+  </div>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // CONFIGURE SUA SENHA DE ADMIN AQUI
+    const ADMIN_PASSWORD = "Voyager199232";
+    function isAdmin() { return localStorage.getItem("mapa-admin-active")==="1"; }
+    function setAdmin(v){ localStorage.setItem("mapa-admin-active", v?"1":""); }
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyBTytxi8ayymdzS8OoxYhbVaEroqihXjho",
+      authDomain: "mapa-pronta-resposta.firebaseapp.com",
+      databaseURL: "https://mapa-pronta-resposta-default-rtdb.firebaseio.com",
+      projectId: "mapa-pronta-resposta",
+      storageBucket: "mapa-pronta-resposta.firebasestorage.app",
+      messagingSenderId: "93488911745",
+      appId: "1:93488911745:web:75c02474272ed60d9b4480",
+      measurementId: "G-8LHWL4F1SJ"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function formatWhatsappNumber(numero) {
+      let num = (numero + '').replace(/\D/g, '');
+      if (!num.startsWith('55')) num = '55' + num;
+      return num;
+    }
+
+    let contatos = [];
+    let markers = [];
+    const MAP_START = {lat: -15.78, lng: -47.93, zoom: 4};
+    var map = L.map('map').setView([MAP_START.lat, MAP_START.lng], MAP_START.zoom);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    function listenContatosFirebase() {
+      db.ref('contatos').on('value', function(snapshot){
+        contatos = [];
+        snapshot.forEach(function(child) {
+          let val = child.val();
+          val.key = child.key;
+          contatos.push(val);
+        });
+        updateList();
+      });
+    }
+    function addContatoFirebase(data, callback) {
+      db.ref('contatos').push(data, function(error){
+        if (callback) callback(error);
+      });
+    }
+    function editContatoFirebase(key, data, callback) {
+      db.ref('contatos/'+key).set(data, function(error){
+        if (callback) callback(error);
+      });
+    }
+    function removeContatoFirebase(key, callback) {
+      db.ref('contatos/'+key).remove(function(error){
+        if (callback) callback(error);
+      });
+    }
+    
+    // -- Modal cadastro pelo botão --
+    const modalBg = document.getElementById('modal-cadastro-bg');
+    const modalForm = document.getElementById('modal-cadastro-form');
+    const btCadastro = document.getElementById('bt-cadastro');
+    const modalFechar = document.getElementById('modal-fechar');
+    const modalTitle = document.getElementById('modal-title');
+    const modalEditKey = document.getElementById('modal-edit-key');
+    
+    btCadastro.onclick = function() {
+      modalForm.reset();
+      modalTitle.textContent = "Novo Cadastro";
+      modalEditKey.value = "";
+      modalBg.classList.add('visible');
+    };
+    
+    modalFechar.onclick = ()=> { modalBg.classList.remove('visible'); };
+    
+    modalBg.onclick = function(e){if(e.target===modalBg){modalBg.classList.remove('visible'); }};
+    
+    modalForm.addEventListener('submit', async function(event){
+      event.preventDefault();
+      const isEdit = !!modalEditKey.value;
+      const data = {
+        nome: modalForm.nome.value.trim(),
+        profissional: modalForm.prof.value.trim(),
+        whatsapp: modalForm.wpp.value.trim(),
+        cidade: modalForm.cidade.value.trim(),
+        bairro: modalForm.bairro.value.trim(),
+        estado: modalForm.estado.value.trim().toUpperCase(),
+        cadastradoEm: (new Date()).toLocaleString()
+      };
+      let q = encodeURIComponent(data.cidade + " " + data.estado + " Brasil");
+      let url = `https://nominatim.openstreetmap.org/search?city=${q}&format=json&country=brasil&limit=1`;
+      let nresp = await fetch(url);
+      let nres = await nresp.json();
+      if (nres && nres[0]) {
+        data.lat = parseFloat(nres[0].lat);
+        data.lng = parseFloat(nres[0].lon);
+      } else {
+        alert("Cidade não encontrada no mapa! Verifique se escreveu corretamente.");
+        return;
+      }
+      if(isEdit) {
+        let antigo = contatos.find(c=>c.key===modalEditKey.value);
+        if(antigo && antigo.cadastradoEm) data.cadastradoEm = antigo.cadastradoEm;
+        editContatoFirebase(modalEditKey.value, data);
+      } else {
+        addContatoFirebase(data);
+      }
+      modalBg.classList.remove('visible');
+    });
+    
+    // -- Modal cadastro por clique no mapa --
+    const modalBgMapa = document.getElementById('modal-cadastro-bg-mapa');
+    const modalFormMapa = document.getElementById('modal-cadastro-form-mapa');
+    const modalFecharMapa = document.getElementById('modal-fechar-mapa');
+    
+    map.on('click', function(e) {
+      modalFormMapa.reset();
+      document.getElementById('modal-lat-mapa').value = e.latlng.lat;
+      document.getElementById('modal-lng-mapa').value = e.latlng.lng;
+      modalBgMapa.classList.add('visible');
+    });
+    
+    modalFecharMapa.onclick = ()=> { modalBgMapa.classList.remove('visible'); };
+    
+    modalBgMapa.onclick = function(e){if(e.target===modalBgMapa){modalBgMapa.classList.remove('visible'); }};
+    
+    modalFormMapa.addEventListener('submit', function(event){
+      event.preventDefault();
+      const data = {
+        nome: modalFormMapa.nome.value.trim(),
+        profissional: modalFormMapa.prof.value.trim(),
+        whatsapp: modalFormMapa.wpp.value.trim(),
+        cidade: modalFormMapa.cidade.value.trim(),
+        bairro: modalFormMapa.bairro.value.trim(),
+        estado: modalFormMapa.estado.value.trim().toUpperCase(),
+        lat: parseFloat(modalFormMapa.lat.value),
+        lng: parseFloat(modalFormMapa.lng.value),
+        cadastradoEm: (new Date()).toLocaleString()
+      };
+      addContatoFirebase(data);
+      modalBgMapa.classList.remove('visible');
+    });
+    
+    // Admin login modal
+    const adminBox = document.getElementById('admin-box');
+    function updateAdminUI() {
+      if(isAdmin()) {
+        adminBox.style.display = '';
+        document.getElementById('bt-admin').innerText = "Sair do Admin";
+      } else {
+        adminBox.style.display = 'none';
+        document.getElementById('bt-admin').innerText = "Entrar como Admin";
+      }
+      updateList();
+    }
+    
+    const modalAdminLoginBg = document.getElementById('modal-admin-login-bg');
+    const modalAdminLoginForm = document.getElementById('modal-admin-login');
+    const adminPasswordInput = document.getElementById('admin-password');
+    const adminErroDiv = document.getElementById('admin-erro');
+    
+    document.getElementById('bt-admin').onclick = function(){
+      if(isAdmin()){
+        setAdmin(false); 
+        updateAdminUI();
+        return;
+      }
+      adminErroDiv.style.display = 'none';
+      adminPasswordInput.value = '';
+      modalAdminLoginBg.classList.add('visible');
+      setTimeout(()=>{ adminPasswordInput.focus(); },140);
+    };
+    
+    document.getElementById('bt-cancelar-admin').onclick = function(){ 
+      modalAdminLoginBg.classList.remove('visible'); 
+    };
+    
+    modalAdminLoginBg.onclick = function(e){ 
+      if(e.target===modalAdminLoginBg) modalAdminLoginBg.classList.remove('visible'); 
+    };
+    
+    modalAdminLoginForm.onsubmit = function(e){
+      e.preventDefault();
+      if(adminPasswordInput.value === ADMIN_PASSWORD){
+        setAdmin(true);
+        updateAdminUI();
+        modalAdminLoginBg.classList.remove('visible');
+      } else {
+        adminErroDiv.style.display = '';
+        adminErroDiv.innerText = "Senha incorreta!";
+      }
+    };
+    
+    const panel = document.getElementById('sidepanel');
+    const btBusca = document.getElementById('bt-busca');
+    const btPanelClose = document.getElementById('panel-close');
+    
+    btBusca.onclick = () => {
+      panel.classList.add('visible');
+      document.getElementById('search_cidade').value = '';
+      document.getElementById('search_estado').value = '';
+      updateList();
+    };
+    
+    btPanelClose.onclick = () => { panel.classList.remove('visible'); };
+    
+    document.addEventListener('keydown', (e)=>{ if(e.key==="Escape") panel.classList.remove('visible'); });
+    
+    document.getElementById('lista-contatos').onclick = function(e){
+      let el = e.target;
+      
+      if(el.classList.contains('apagar-contato-btn')){
+        if(!isAdmin()) {
+          alert('Apenas admin pode deletar!');
+          return;
+        }
+        let key = el.getAttribute('data-remove-key');
+        if(key && confirm('Tem certeza que deseja apagar este cadastro?')) {
+          removeContatoFirebase(key);
+        }
+        return;
+      }
+      
+      if(el.classList.contains('editar-contato-btn')){
+        if(!isAdmin()) {
+          alert('Apenas admin pode editar!');
+          return;
+        }
+        let key = el.getAttribute('data-edit-key');
+        let contato = contatos.find(c => c.key === key);
+        if(contato) {
+          modalForm.reset();
+          modalTitle.textContent = "Editar Cadastro";
+          modalEditKey.value = key;
+          document.getElementById('modal-nome').value = contato.nome || '';
+          document.getElementById('modal-prof').value = contato.profissional || '';
+          document.getElementById('modal-wpp').value = contato.whatsapp || '';
+          document.getElementById('modal-cidade').value = contato.cidade || '';
+          document.getElementById('modal-bairro').value = contato.bairro || '';
+          document.getElementById('modal-estado').value = contato.estado || '';
+          modalBg.classList.add('visible');
+        }
+        return;
+      }
+      
+      while(el && !el.classList.contains('contato-item')) el = el.parentNode;
+      if(el && el.getAttribute("data-key")) {
+        const key = el.getAttribute("data-key");
+        const c = contatos.find(x=>x.key===key);
+        if(c) map.setView([c.lat, c.lng], 16);
+      }
+    }
+    
+    function addMarker(data, center=false) {
+      const iconSVG = `<svg class="icon-wpp" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#25d366"/><path d="M8.3 7.63c.15-.36.43-.38.74-.22.16.09 2 1.12 2.3 1.23.13.04.22.08.31.19.05.06.1.14.16.21.03.04.03.09.02.13 0 .02.01.04.03.06.07.07.19.1.28.16.22.16.45.33.6.45.07.06.12.13.18.19.06.07.07.15.05.23-.06.23-.12.45-.2.67-.15.44-.47.47-.82.31-.45-.21-1.46-.7-2.1-1.38-.65-.69-1.13-1.54-1.3-2-.16-.42-.01-.71.14-1.06z" fill="#fff"/></svg>`;
+      let wppURL = 'https://wa.me/' + formatWhatsappNumber(data.whatsapp);
+      let title = `<b>${data.nome || ''}</b><br>${data.profissional || ''}<br>
+      <a href="${wppURL}" target="_blank" rel="noopener">${iconSVG} ${data.whatsapp}</a>
+      <br>${data.bairro}, ${data.cidade} - ${data.estado}`;
+      let marker = L.marker([data.lat, data.lng]).addTo(map)
+        .bindPopup(title);
+      marker.meta = data;
+      markers.push(marker);
+      if(center) map.setView([data.lat, data.lng], 14);
+    }
+    
+    function updateList(centerContato = null) {
+      const cidade = document.getElementById('search_cidade').value.trim().toLowerCase();
+      const estado = document.getElementById('search_estado').value.trim().toUpperCase();
+      function filtro(item) {
+        if(cidade && !item.cidade.toLowerCase().includes(cidade)) return false;
+        if(estado && item.estado !== estado) return false;
+        return true;
+      }
+      let filtrados = contatos.filter(filtro);
+      markers.forEach(m => map.removeLayer(m));
+      markers = [];
+      let lista = document.getElementById('lista-contatos');
+      if (filtrados.length === 0) {
+        lista.innerHTML = '<div style="color:#999">Nenhum contato cadastrado.</div>';
+      } else {
+        lista.innerHTML = filtrados.map((item,idx) => {
+          let wppURL = 'https://wa.me/' + formatWhatsappNumber(item.whatsapp);
+          return `<div class="contato-item" data-key="${item.key}">
+            <b>${item.nome}</b><br>
+            Perfil: ${item.profissional}<br>
+            WhatsApp: <a href="${wppURL}" target="_blank">${item.whatsapp}</a><br>
+            ${item.bairro}, ${item.cidade} - ${item.estado}<br>
+            <span style="font-size:0.9em;color:#aaa">${item.cadastradoEm}</span>
+            ${isAdmin() ? `
+            <button class="editar-contato-btn" title="Editar este cadastro" data-edit-key="${item.key}">Editar</button>
+            <button class="apagar-contato-btn" title="Apagar este cadastro" data-remove-key="${item.key}">Apagar</button>
+            ` : ""}
+          </div>`;
+        }).join('');
+      }
+      filtrados.forEach(c => addMarker(c, false));
+      if(centerContato) map.setView([centerContato.lat, centerContato.lng], 14);
+    }
+    
+    ['search_cidade', 'search_estado'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updateList);
+    });
+    
+    listenContatosFirebase();
+    updateAdminUI();
+  </script>
+</body>
+</html>
