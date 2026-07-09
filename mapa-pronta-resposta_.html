@@ -13,13 +13,17 @@
       overflow-x: hidden;
       font-family: Arial,sans-serif;
     }
-    #topbar { width: 100vw; min-height: 56px; background: #1564c0; color: #fff; display: flex; align-items: center; justify-content: center; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 2000; box-sizing: border-box; padding: 8px 0; font-size: 1em;}
+    #topbar { width: 100vw; min-height: 56px; background: #1564c0; color: #fff; display: flex; align-items: center; justify-content: space-between; flex-direction: row; position: fixed; top: 0; left: 0; z-index: 2000; box-sizing: border-box; padding: 8px 20px; font-size: 1em;}
     #topbar-center { flex: 1; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;}
     #topbar-title { font-size: 1.18em; font-weight: bold; letter-spacing: 0.5px; white-space: nowrap; margin-bottom: 2px;}
     #topbar-subtitle { font-size: .99em; font-weight: normal; white-space: nowrap; margin-bottom: 0; color: #eafff7;}
-    #topbar-btns { display: flex; gap: 12px; margin-top: 6px; align-items: center; justify-content: center;}
-    .bt-action { background: #fff; color: #1564c0; border: none; border-radius: 4px; padding: 7px 16px; font-size: 1em; font-weight: bold; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.07); transition: background 0.2s, color 0.2s; outline: none;}
-    .bt-action:hover { background: #e2e9f6; color: #1251a0;}
+    #topbar-left { flex: 1; display: flex; align-items: center; justify-content: flex-start;}
+    #topbar-middle { flex: 2; display: flex; align-items: center; justify-content: center;}
+    #topbar-right { flex: 1; display: flex; align-items: center; justify-content: flex-end;}
+    #bt-busca { background: #fff; color: #1564c0; border: none; border-radius: 4px; padding: 8px 24px; font-size: 1.1em; font-weight: bold; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.07); transition: background 0.2s, color 0.2s; outline: none;}
+    #bt-busca:hover { background: #e2e9f6; color: #1251a0;}
+    #bt-admin { background: rgba(255, 255, 255, 0.2); color: #fff; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 4px; padding: 5px 12px; font-size: 0.85em; font-weight: normal; cursor: pointer; transition: background 0.2s, color 0.2s; outline: none;}
+    #bt-admin:hover { background: rgba(255, 255, 255, 0.3);}
     #credit { display:block; font-size: .93em; color: #e3e9f2; font-style: italic; margin: 4px auto 0 auto; text-align: center; min-width: 100px;}
     
     /* Nova barra azul secundária */
@@ -229,12 +233,14 @@
     @media (max-width:900px) {
       #map { top: 88px; height: calc(100vh - 88px);}
       #sidepanel { top: 88px; width: 97vw; min-width: unset; }
-      #topbar { flex-direction: column; height: auto; min-height: auto; padding: 6px 0;}
-      #topbar-center { margin: 0; width: 100%;}
+      #topbar { flex-direction: column; height: auto; min-height: auto; padding: 6px 0; justify-content: center;}
+      #topbar-left { flex: 1; width: 100%; justify-content: center; margin-bottom: 6px;}
+      #topbar-middle { flex: 1; width: 100%; justify-content: center;}
+      #topbar-right { flex: 1; width: 100%; justify-content: center; margin-top: 6px;}
       #topbar-title { font-size: 1.1em; margin-bottom: 1px;}
       #topbar-subtitle { font-size: 0.9em; margin-bottom: 2px;}
-      #topbar-btns { flex-direction: row; gap: 8px; margin: 4px auto 0 auto; min-width: 0;}
-      .bt-action { padding: 6px 12px; font-size: 0.9em;}
+      #bt-busca { padding: 6px 16px; font-size: 0.95em;}
+      #bt-admin { padding: 4px 10px; font-size: 0.75em;}
       #credit { min-width: 0; font-size: 0.85em; margin: 2px auto 0 auto;}
       #topbar-secondary { 
         font-size: 0.85em; 
@@ -246,15 +252,16 @@
 </head>
 <body>
   <div id="topbar">
-    <div id="topbar-center">
-      <div id="topbar-title">Contatos Pronta Resposta</div>
-      <div id="topbar-subtitle">Apareça para todas as empresas do Brasil.</div>
-      <div id="topbar-btns">
-        <button class="bt-action" id="bt-cadastro">Novo Cadastro</button>
-        <button class="bt-action" id="bt-busca">Buscas</button>
-        <button class="bt-action" id="bt-admin">Entrar como Admin</button>
+    <div id="topbar-left"></div>
+    <div id="topbar-middle">
+      <div id="topbar-center">
+        <div id="topbar-title">Contatos Pronta Resposta</div>
+        <div id="topbar-subtitle">Apareça para todas as empresas do Brasil.</div>
+        <button id="bt-busca">Buscas</button>
       </div>
-      <span id="credit"><i>Mapa criado por Joe Franco RJ</i></span>
+    </div>
+    <div id="topbar-right">
+      <button id="bt-admin">Entrar como Admin</button>
     </div>
   </div>
   
