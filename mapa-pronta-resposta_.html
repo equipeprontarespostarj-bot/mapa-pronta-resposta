@@ -60,24 +60,6 @@
     .apagar-contato-btn:hover { background: #a31212; }
     #admin-box { color: #fff; font-size: 0.85em; background:#0b58a5; padding: 3px 14px; border-radius: 0 0 14px 0; position: fixed; left: 0; top:0; z-index:2100;}
     
-    /* Botão de download */
-    #bt-download-html {
-      background: #25d366;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      padding: 8px 16px;
-      font-size: 0.95em;
-      font-weight: bold;
-      cursor: pointer;
-      width: 100%;
-      margin-bottom: 12px;
-      transition: background 0.2s;
-    }
-    #bt-download-html:hover {
-      background: #1eaa54;
-    }
-    
     /* CORRIGIDO: Modal de cadastro */
     #modal-cadastro-bg {
       display: none;
@@ -285,7 +267,6 @@
   <div id="map"></div>
   <div id="sidepanel">
     <button id="panel-close" title="Fechar painel lateral">&times;</button>
-    <button id="bt-download-html" title="Baixar arquivo HTML para seu computador">📥 Baixar Arquivo HTML</button>
     <h2 style="margin-top:0;">Pesquisar e Listar Contatos</h2>
     <div class="busca-group">
       <label for="search_estado">Estado:</label>
@@ -587,17 +568,6 @@
     btPanelClose.onclick = () => { panel.classList.remove('visible'); };
     
     document.addEventListener('keydown', (e)=>{ if(e.key==="Escape") panel.classList.remove('visible'); });
-    
-    // -- Download HTML --
-    document.getElementById('bt-download-html').onclick = function() {
-      let htmlContent = document.documentElement.outerHTML;
-      let blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-      let link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'mapa-pronta-resposta.html';
-      link.click();
-      URL.revokeObjectURL(link.href);
-    };
     
     document.getElementById('lista-contatos').onclick = function(e){
       let el = e.target;
