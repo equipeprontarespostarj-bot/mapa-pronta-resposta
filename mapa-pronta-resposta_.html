@@ -13,14 +13,14 @@
       overflow-x: hidden;
       font-family: Arial,sans-serif;
     }
-    #topbar { width: 100vw; min-height: 56px; background: #1564c0; color: #fff; display: flex; align-items: flex-end; justify-content: center; flex-direction: row; position: fixed; top: 0; left: 0; z-index: 2000; box-sizing: border-box; padding: 0; font-size: 1em;}
-    #topbar-center { flex: 1; text-align: center; padding: 8px 0 2px 0; display: flex; flex-direction: column; justify-content: center; align-items: center;}
-    #topbar-title { font-size: 1.18em; font-weight: bold; letter-spacing: 0.5px; white-space: nowrap; margin-bottom: 1px;}
+    #topbar { width: 100vw; min-height: 56px; background: #1564c0; color: #fff; display: flex; align-items: center; justify-content: center; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 2000; box-sizing: border-box; padding: 8px 0; font-size: 1em;}
+    #topbar-center { flex: 1; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;}
+    #topbar-title { font-size: 1.18em; font-weight: bold; letter-spacing: 0.5px; white-space: nowrap; margin-bottom: 2px;}
     #topbar-subtitle { font-size: .99em; font-weight: normal; white-space: nowrap; margin-bottom: 0; color: #eafff7;}
-    #topbar-btns { display: flex; gap: 12px; margin: 0 36px 0 0; align-items: flex-end;}
+    #topbar-btns { display: flex; gap: 12px; margin-top: 6px; align-items: center; justify-content: center;}
     .bt-action { background: #fff; color: #1564c0; border: none; border-radius: 4px; padding: 7px 16px; font-size: 1em; font-weight: bold; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.07); transition: background 0.2s, color 0.2s; outline: none;}
     .bt-action:hover { background: #e2e9f6; color: #1251a0;}
-    #credit { display:block; font-size: .93em; color: #e3e9f2; font-style: italic; margin: 4px auto 6px auto; text-align: center; min-width: 100px;}
+    #credit { display:block; font-size: .93em; color: #e3e9f2; font-style: italic; margin: 4px auto 0 auto; text-align: center; min-width: 100px;}
     
     /* Nova barra azul secundária */
     #topbar-secondary { 
@@ -229,11 +229,13 @@
     @media (max-width:900px) {
       #map { top: 88px; height: calc(100vh - 88px);}
       #sidepanel { top: 88px; width: 97vw; min-width: unset; }
-      #topbar { flex-direction: column; height: auto; min-height: 50px;}
-      #topbar-center{ margin-top: 2px; }
-      #topbar-btns{ flex-direction: row; gap:12px; margin:6px auto 0 auto; min-width: 0;}
-      #credit{ min-width: 0;}
-      #admin-box { padding: 2px 7px; font-size:90%;}
+      #topbar { flex-direction: column; height: auto; min-height: auto; padding: 6px 0;}
+      #topbar-center { margin: 0; width: 100%;}
+      #topbar-title { font-size: 1.1em; margin-bottom: 1px;}
+      #topbar-subtitle { font-size: 0.9em; margin-bottom: 2px;}
+      #topbar-btns { flex-direction: row; gap: 8px; margin: 4px auto 0 auto; min-width: 0;}
+      .bt-action { padding: 6px 12px; font-size: 0.9em;}
+      #credit { min-width: 0; font-size: 0.85em; margin: 2px auto 0 auto;}
       #topbar-secondary { 
         font-size: 0.85em; 
         padding: 0 10px;
@@ -245,10 +247,8 @@
 <body>
   <div id="topbar">
     <div id="topbar-center">
-      <div id="topbar-title">Contatos Pronta Resposta - Buscas</div>
+      <div id="topbar-title">Contatos Pronta Resposta</div>
       <div id="topbar-subtitle">Apareça para todas as empresas do Brasil.</div>
-    </div>
-    <div>
       <div id="topbar-btns">
         <button class="bt-action" id="bt-cadastro">Novo Cadastro</button>
         <button class="bt-action" id="bt-busca">Buscas</button>
